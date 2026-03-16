@@ -1,0 +1,288 @@
+ClrHome
+Disp "COMPRESSIBLE FLOW"
+Disp "   CALCULATOR"
+Disp "v1.0"
+Disp "Garrett Kunkler"
+Pause 
+
+If abs(sin(180))>0.00001
+Then
+    Menu("Degree mode required","Switch",MD,"Skip",IK)
+Else 
+    Goto IK
+End
+
+Lbl MD
+Degree 
+ClrHome 
+Disp "Mode set to"
+Disp "DEGREE"
+Pause 
+
+Lbl IK
+ClrHome
+Input "K=",K
+If K<=1
+Then
+    Disp "K<1"
+    Disp "Enter Again"
+    Pause 
+    Goto IK
+End
+(K-1)/2->A
+K/(K-1)->E
+1/(K-1)->F
+(K+1)/2->G
+(K+1)/(2*(K-1))->B
+
+Lbl MN
+Menu("Flow Type","Isentropic",II,"Normal Shock",IN,"Quit",QT)
+
+Lbl II
+Menu("Isentropic","Ma",IM,"P0/P",IP,"T0/T",IT,"RHO0/RHO",IR,"A/A* Subsonic",IB,"A/A* Supersonic",AP)
+
+Lbl IM
+ClrHome
+Disp "Isentropic (Ma)"
+
+Input "M (x>=0) =",M
+If M<0
+Then
+    Disp "Ma out of range"
+    Disp "Enter Again"
+    Pause 
+    Goto IM
+End
+Goto DI
+
+Lbl IP
+ClrHome
+Disp "Isentropic"
+Input "P0/P (x>=1) =",R
+If R<1
+Then
+    Disp "P0/P out of range"
+    Disp "Enter Again"
+    Pause 
+    Goto IP
+End
+
+sqrt((R^(1/E)-1)/A)->M
+Goto DI
+
+Lbl IT
+ClrHome
+Disp "Isentropic"
+Input "T0/T (x>=1) =",R
+If R<1
+Then
+    Disp "T0/T out of range"
+    Disp "Enter Again"
+    Pause 
+    Goto IT
+End
+sqrt((R-1)/A)->M
+Goto DI
+
+Lbl IR
+ClrHome
+Disp "Isentropic"
+Input "RHO0/RHO (x>=1) =",R
+If R<1
+Then
+    Disp "RHO0/RHO out of range"
+    Disp "Enter Again"
+    Goto IR
+Else
+sqrt(((R^(1/F))-1)/A)->M
+Goto DI
+
+Lbl IB
+ClrHome
+Disp "Isentropic"
+Input "A/A* subsonic=",S
+If S<1
+Then
+    Disp "A/A* out of range"
+    Disp "Enter Again"
+    Pause 
+    Goto IB
+End
+If S=1
+Then
+    1->M
+    Goto DI
+End
+Disp "Iterating..."
+0.5->M
+0->C
+For(I,1,100)
+    If M<0
+        0.05->M
+    If M>1
+        0.95->M
+    1/M*((1+A*M^2)/G)^B->Y
+    1/M^2*((1+A*M^2)/G)^(B-1)*(A*(2*B-1)*M^2-1)->D
+    M-(Y-S)/D->M
+    If abs(Y-S)<0.000001
+    Then
+        1->C
+        Goto DI
+    End
+End
+If C=0
+Then
+    ClrHome
+    Disp "WARNING:"
+    Disp "Did not converge"
+    Disp "Results may be"
+    Disp "inaccurate"
+    Disp "Press enter to"
+    Disp "view results"
+    Pause 
+End
+Goto DI
+
+Lbl AP
+ClrHome
+Disp "Isentropic"
+Input "A/A* supersonic=",S
+If S<1
+Then
+    Disp "A/A* out of range"
+    Disp "Enter Again"
+    Pause 
+    Goto AP
+End
+If S=1
+Then
+    1->M
+    Goto DI
+End
+1.5->M
+0->C
+For(I,1,100)
+    If M<1
+        1.05->M
+    1/M*((1+A*M^2)/G)^B->Y
+    1/M^2*((1+A*M^2)/G)^(B-1)*(A*(2*B-1)*M^2-1)->D
+    M-(Y-S)/D->M
+    If abs(Y-S)<0.000001
+    Then
+        1->C
+        Goto DI
+    End
+End
+If C=0
+Then
+    ClrHome
+    Disp "WARNING:"
+    Disp "Did not converge"
+    Disp "Results may be"
+    Disp "inaccurate"
+    Disp "Press enter to"
+    Disp "view results"
+    Pause 
+End
+
+Lbl DI
+1+A*M^2->U
+U->T
+U^E->P
+U^F->R
+
+1/M*(U/G)^B->S
+sqrt((2/(K-1))*(H-1))->D
+ClrHome
+Disp "-- Isentropic --"
+Disp "K="
+Disp K
+Disp "M="
+Disp M
+Disp "P0/P="
+Disp P
+Disp "RHO0/RHO="
+Disp R
+Pause 
+ClrHome
+Disp "-- Isentropic --"
+Disp "T/T0="
+Disp T
+Disp "A/A*="
+Disp S
+Disp "P/P*="
+Disp (G^E)/P
+Disp "RHO/RHO*="
+Disp (G^F)/R
+Pause 
+ClrHome
+Disp "-- Isentropic --"
+Disp "T/T*="
+Disp G/T
+If M>1
+Then
+    Disp "Mach Angle (deg)="
+    Disp sin^-1(1/M)
+End
+Pause 
+Goto MN
+
+Lbl IN
+Menu("Normal Shock","M1",N1,"M2",N2)
+
+Lbl N1
+ClrHome
+Disp "Normal Shock"
+Input "M1 (>1)=",U
+If U<1
+    Goto N1
+Goto DN
+
+Lbl N2
+ClrHome
+Disp "Normal Shock"
+Input "M2 (0<x<1)=",V
+If V<=0 or V>=1
+    Goto N2
+(K-1)/2->A
+sqrt((1+A*V^2)/(K*V^2-A))->U
+Goto DN
+
+Lbl DN
+(K-1)/2->A
+K/(K-1)->E
+1/(K-1)->F
+(1+A*U^2)/(K*U^2-A)->V
+sqrt(V)->V
+(2*K*U^2-(K-1))/(K+1)->P
+P*(2+(K-1)*U^2)/((K+1)*U^2)->T
+(K+1)*U^2/(2+(K-1)*U^2)->R
+((K+1)*U^2/(2+(K-1)*U^2))^E*((K+1)/(2*K*U^2-(K-1)))^F->N
+(1+A*U^2)^E*N->S
+ClrHome
+Disp "-- Normal Shock --"
+Disp "K="
+Disp K
+Disp "M1="
+Disp U
+Disp "M2="
+Disp V
+Disp "P2/P1="
+Disp P
+Pause 
+ClrHome
+Disp "-- Normal Shock --"
+Disp "T2/T1="
+Disp T
+Disp "RHO2/RHO1="
+Disp R
+Disp "P02/P01="
+Disp N
+Disp "P1/P02="
+Disp 1/S
+Pause 
+Goto MN
+
+Lbl QT
+ClrHome
+Stop
